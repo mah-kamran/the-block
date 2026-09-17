@@ -1,0 +1,10 @@
+.wrap { display: inline-flex; align-items: center; gap: var(--space-2); font-size: var(--text-sm); }
+.label { color: var(--color-text-muted); }
+.select {
+  height: 36px;
+  padding: 0 var(--space-3);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  font-size: var(--text-sm);
+}

@@ -1,12 +1,15 @@
-import { useEffect, useState } from 'react'
+import { Route, Routes } from 'react-router-dom'
+import { Layout } from './components/Layout/Layout'
+import { InventoryPage } from './pages/InventoryPage'
+import { VehicleDetailPage } from './pages/VehicleDetailPage'
 
 export default function App() {
-  const [status, setStatus] = useState('…')
-  useEffect(() => {
-    fetch('/api/health')
-      .then((r) => r.json())
-      .then((d) => setStatus(d.status))
-      .catch(() => setStatus('api unreachable'))
-  }, [])
-  return <h1>The Block — api: {status}</h1>
+  return (
+    <Routes>
+      <Route element={<Layout />}>
+        <Route index element={<InventoryPage />} />
+        <Route path="vehicles/:id" element={<VehicleDetailPage />} />
+      </Route>
+    </Routes>
+  )
 }
