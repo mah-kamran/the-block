@@ -72,7 +72,11 @@ public sealed record VehicleDetail(
 
 public sealed record FacetValue(string Value, int Count);
 
+/// <summary>Bounds of the effective price (current bid, else starting bid) across the matching set, before the price filter.</summary>
+public sealed record PriceRange(decimal Min, decimal Max);
+
 public sealed record Facets(
+    PriceRange Price,
     IReadOnlyList<FacetValue> State,
     IReadOnlyList<FacetValue> Make,
     IReadOnlyList<FacetValue> BodyStyle,

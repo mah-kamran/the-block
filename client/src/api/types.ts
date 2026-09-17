@@ -62,7 +62,14 @@ export interface FacetValue {
   count: number
 }
 
+export interface PriceRange {
+  min: number
+  max: number
+}
+
 export interface Facets {
+  /** Bounds of current-or-starting price across the matching set, before the price filter. */
+  price: PriceRange
   state: FacetValue[]
   make: FacetValue[]
   bodyStyle: FacetValue[]
@@ -85,6 +92,7 @@ export type SortKey =
   | 'year_desc'
   | 'odometer_asc'
   | 'newly_listed'
+  | 'most_bids'
 
 export interface VehicleQuery {
   q?: string
@@ -93,6 +101,10 @@ export interface VehicleQuery {
   province?: string[]
   state?: string[]
   titleStatus?: string[]
+  minPrice?: number
+  maxPrice?: number
+  /** Keep only the N most-bid vehicles from the filtered set. */
+  top?: number
   sort?: SortKey
   page?: number
   pageSize?: number

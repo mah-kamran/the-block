@@ -10,6 +10,10 @@ public sealed record VehicleQueryParams(
     string[] Province,
     string[] State,
     string[] TitleStatus,
+    decimal? MinPrice,
+    decimal? MaxPrice,
+    /// <summary>When set, keep only the N most-bid vehicles from the filtered set, ranked by bid count.</summary>
+    int? Top,
     string Sort,
     int Page,
     int PageSize);
@@ -45,14 +49,36 @@ public sealed class VehicleQuery
             .Where(r => In(p.State, r.State.ToString()))
             .ToList();
 
+        // Price bounds are computed before the price filter so the slider keeps its full extent.
+        var price = rows.Count == 0
+            ? new PriceRange(0, 0)
+            : new PriceRange(rows.Min(r => r.Price), rows.Max(r => r.Price));
+
+        rows = rows
+            .Where(r => p.MinPrice is null || r.Price >= p.MinPrice)
+            .Where(r => p.MaxPrice is null || r.Price <= p.MaxPrice)
+            .ToList();
+
+        if (p.Top is > 0)
+        {
+            rows = rows
+                .OrderByDescending(r => r.Ledger.BidCount)
+                .ThenBy(r => r.State == AuctionState.Live ? 0 : 1)
+                .ThenBy(r => r.End)
+                .Take(p.Top.Value)
+                .ToList();
+        }
+
         var facets = new Facets(
+            Price: price,
             State: Facet(rows, r => r.State.ToString().ToLowerInvariant()),
             Make: Facet(rows, r => r.Ledger.Vehicle.Make),
             BodyStyle: Facet(rows, r => r.Ledger.Vehicle.BodyStyle),
             Province: Facet(rows, r => r.Ledger.Vehicle.Province),
             TitleStatus: Facet(rows, r => r.Ledger.Vehicle.TitleStatus));
 
-        var sorted = Sort(rows, p.Sort);
+        // A "top N" view is a ranking; keep it ranked unless the buyer explicitly re-sorts.
+        var sorted = Sort(rows, p.Top is > 0 && p.Sort == "ending_soon" ? "most_bids" : p.Sort);
         var items = sorted
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
@@ -70,7 +96,11 @@ public sealed class VehicleQuery
         return new Row(l, state, start, end);
     }
 
-    private sealed record Row(AuctionLedger Ledger, AuctionState State, DateTime Start, DateTime End);
+    private sealed record Row(AuctionLedger Ledger, AuctionState State, DateTime Start, DateTime End)
+    {
+        /// <summary>What a buyer would have to beat right now.</summary>
+        public decimal Price => Ledger.CurrentBid ?? Ledger.Vehicle.StartingBid;
+    }
 
     private static bool In(string[] wanted, string value) =>
         wanted.Length == 0 || wanted.Any(w => string.Equals(w, value, StringComparison.OrdinalIgnoreCase));
@@ -92,11 +122,12 @@ public sealed class VehicleQuery
 
     private static IEnumerable<Row> Sort(IEnumerable<Row> rows, string sort) => sort switch
     {
-        "price_asc" => rows.OrderBy(r => r.Ledger.CurrentBid ?? r.Ledger.Vehicle.StartingBid),
-        "price_desc" => rows.OrderByDescending(r => r.Ledger.CurrentBid ?? r.Ledger.Vehicle.StartingBid),
+        "price_asc" => rows.OrderBy(r => r.Price),
+        "price_desc" => rows.OrderByDescending(r => r.Price),
         "year_desc" => rows.OrderByDescending(r => r.Ledger.Vehicle.Year).ThenBy(r => r.Ledger.Vehicle.OdometerKm),
         "odometer_asc" => rows.OrderBy(r => r.Ledger.Vehicle.OdometerKm),
         "newly_listed" => rows.OrderByDescending(r => r.Start),
+        "most_bids" => rows.OrderByDescending(r => r.Ledger.BidCount).ThenBy(r => r.State == AuctionState.Live ? 0 : 1).ThenBy(r => r.End),
         // ending_soon: live auctions by soonest end, then upcoming by soonest start, ended last (most recent first)
         _ => rows.OrderBy(r => r.State switch { AuctionState.Live => 0, AuctionState.Upcoming => 1, _ => 2 })
                  .ThenBy(r => r.State == AuctionState.Ended ? -r.End.Ticks : r.State == AuctionState.Live ? r.End.Ticks : r.Start.Ticks),

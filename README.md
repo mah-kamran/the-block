@@ -36,7 +36,7 @@ About 4 hours, in six passes: scaffold → data layer and auction clock → inve
 
 ## What I built
 
-**Inventory** — search (tokenised, so "2023 explorer" or a lot number works), facet filters with live counts (auction status, make, body style, province, title), six sort orders, pagination. Every piece of query state lives in the URL, so views are shareable and the back button behaves. Cards show state with a ticking countdown, current or starting bid, bid count, reserve status, a warning chip for salvage/rebuilt titles, and your own standing ("You lead" / "Outbid").
+**Inventory** — search (tokenised, so "2023 explorer" or a lot number works), a price range (on current bid, falling back to starting bid) plus facet filters with live counts (auction status, make, body style, province, title), seven sort orders including "Most bids", a "Top 5 most bid" toggle that ranks the five most popular vehicles within whatever else is selected, and pagination. Every piece of query state lives in the URL, so views are shareable and the back button behaves. Cards show state with a ticking countdown, current or starting bid, bid count, reserve status, a warning chip for salvage/rebuilt titles, and your own standing ("You lead" / "Outbid").
 
 **Vehicle detail** — gallery, specs, a condition section with a graded meter, the report, a title-status callout and damage notes, selling dealership, and bid history. The bid panel defaults to the minimum bid, offers quick-bid chips, validates as you type with a message that says exactly what is wrong, then confirms before placing. Buy Now has its own confirmation. While an auction is live the page polls every 10 s, so being outbid from another browser shows up without a refresh.
 
@@ -71,7 +71,7 @@ About 4 hours, in six passes: scaffold → data layer and auction clock → inve
 
 ## Testing
 
-- **Server (xUnit, 30 tests):** `BiddingRules` — every increment band, minimum-bid derivation, and each rejection reason including the Buy Now ceiling and self-outbid; `AuctionClock` — window mapping and Upcoming→Live→Ended boundaries with a fake clock; `BidStore` — seeded-state layering and a 50-thread race that asserts bids strictly increase.
+- **Server (xUnit, 34 tests):** `BiddingRules` — every increment band, minimum-bid derivation, and each rejection reason including the Buy Now ceiling and self-outbid; `AuctionClock` — window mapping and Upcoming→Live→Ended boundaries with a fake clock; `BidStore` — seeded-state layering and a 50-thread race that asserts bids strictly increase; `VehicleQuery` — price filtering semantics, facet bounds, and top-N ranking.
 - **Client (Vitest + Testing Library, 12 tests):** formatting helpers, the client-side rule mirror, and `BidPanel` behaviour — defaulting to the minimum, blocking review with an explanatory message, confirm-then-place, and the non-live and outbid states.
 - **Manual:** the full bid / outbid / Buy Now / sold flow exercised over HTTP against every 409 path, and a viewport pass for the mobile layouts.
 

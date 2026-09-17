@@ -5,6 +5,7 @@ import type { SortKey, VehicleQuery } from '../api/types'
 import { EmptyState } from '../components/EmptyState/EmptyState'
 import { Filters, type FacetKey } from '../components/Filters/Filters'
 import { Pagination } from '../components/Pagination/Pagination'
+import type { PriceBounds } from '../components/PriceRange/PriceRange'
 import { SearchBar } from '../components/SearchBar/SearchBar'
 import { SortSelect } from '../components/SortSelect/SortSelect'
 import { VehicleCard } from '../components/VehicleCard/VehicleCard'
@@ -29,9 +30,16 @@ export function InventoryPage() {
     [params],
   )
 
+  const price: PriceBounds = useMemo(
+    () => ({ min: numberParam(params.get('minPrice')), max: numberParam(params.get('maxPrice')) }),
+    [params],
+  )
+
+  const topTen = params.get('top') === '5'
+
   const query: VehicleQuery = useMemo(
-    () => ({ q: q || undefined, sort, page, pageSize: PAGE_SIZE, ...selected }),
-    [q, sort, page, selected],
+    () => ({ q: q || undefined, sort, page, pageSize: PAGE_SIZE, minPrice: price.min, maxPrice: price.max, top: topTen ? 5 : undefined, ...selected }),
+    [q, sort, page, price, topTen, selected],
   )
   const { data, isPending, isError, isFetching, refetch } = useVehicles(query)
 
@@ -63,10 +71,27 @@ export function InventoryPage() {
       const next = values.includes(value) ? values.filter((v) => v !== value) : [...values, value]
       next.forEach((v) => p.append(key, v))
     })
-  const clearFacets = () => update((p) => FACET_KEYS.forEach((k) => p.delete(k)))
+  const setPrice = (bounds: PriceBounds) =>
+    update((p) => {
+      if (bounds.min !== undefined) p.set('minPrice', String(bounds.min))
+      else p.delete('minPrice')
+      if (bounds.max !== undefined) p.set('maxPrice', String(bounds.max))
+      else p.delete('maxPrice')
+    })
+  const setTopTen = (on: boolean) => update((p) => (on ? p.set('top', '5') : p.delete('top')))
+  const clearFacets = () =>
+    update((p) => {
+      FACET_KEYS.forEach((k) => p.delete(k))
+      p.delete('minPrice')
+      p.delete('maxPrice')
+      p.delete('top')
+    })
   const clearAll = () => setParams({}, { replace: true })
 
-  const activeFilterCount = Object.values(selected).reduce((n, arr) => n + arr.length, 0)
+  const activeFilterCount =
+    Object.values(selected).reduce((n, arr) => n + arr.length, 0) +
+    (price.min !== undefined || price.max !== undefined ? 1 : 0) +
+    (topTen ? 1 : 0)
 
   return (
     <div className={styles.page}>
@@ -86,7 +111,16 @@ export function InventoryPage() {
             <span>Filters</span>
             <button type="button" className={styles.close} onClick={() => setFiltersOpen(false)} aria-label="Close filters">×</button>
           </div>
-          <Filters facets={data?.facets} selected={selected} onToggle={toggleFacet} onClear={clearFacets} />
+          <Filters
+            facets={data?.facets}
+            selected={selected}
+            price={price}
+            topTen={topTen}
+            onToggle={toggleFacet}
+            onPriceChange={setPrice}
+            onTopTenChange={setTopTen}
+            onClear={clearFacets}
+          />
           <div className={styles.sidebarFoot}>
             <button type="button" className={styles.apply} onClick={() => setFiltersOpen(false)}>
               Show {data?.total ?? ''} vehicles
@@ -98,7 +132,11 @@ export function InventoryPage() {
         <section className={styles.results} aria-live="polite" aria-busy={isFetching}>
           <div className={styles.resultsHead}>
             <h1 className={styles.heading}>
-              {isPending ? 'Loading inventory…' : `${data?.total ?? 0} vehicle${data?.total === 1 ? '' : 's'}`}
+              {isPending
+                ? 'Loading inventory…'
+                : topTen
+                  ? `Top ${data?.total ?? 0} most popular`
+                  : `${data?.total ?? 0} vehicle${data?.total === 1 ? '' : 's'}`}
               {q && !isPending && <span className={styles.forQuery}> for “{q}”</span>}
             </h1>
           </div>
@@ -134,4 +172,10 @@ export function InventoryPage() {
       </div>
     </div>
   )
+}
+
+function numberParam(raw: string | null): number | undefined {
+  if (raw === null || raw === '') return undefined
+  const n = Number(raw)
+  return Number.isFinite(n) && n >= 0 ? n : undefined
 }

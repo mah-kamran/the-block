@@ -22,13 +22,16 @@ public static class VehicleEndpoints
             [FromQuery] string[]? province,
             [FromQuery] string[]? state,
             [FromQuery] string[]? titleStatus,
+            [FromQuery] decimal? minPrice,
+            [FromQuery] decimal? maxPrice,
+            [FromQuery] int? top,
             [FromQuery] string? sort,
             [FromQuery] int page = 1,
             [FromQuery] int pageSize = VehicleQuery.DefaultPageSize) =>
         {
             var p = new VehicleQueryParams(
                 q, make ?? [], bodyStyle ?? [], province ?? [], state ?? [], titleStatus ?? [],
-                sort ?? "ending_soon", page, pageSize);
+                minPrice, maxPrice, top is > 0 ? Math.Min(top.Value, VehicleQuery.MaxPageSize) : null, sort ?? "ending_soon", page, pageSize);
             return Results.Ok(query.Run(p, BuyerId(request)));
         });
 

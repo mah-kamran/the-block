@@ -4,6 +4,7 @@ import styles from './SortSelect.module.css'
 const OPTIONS: { value: SortKey; label: string }[] = [
   { value: 'ending_soon', label: 'Ending soonest' },
   { value: 'newly_listed', label: 'Newly listed' },
+  { value: 'most_bids', label: 'Most bids' },
   { value: 'price_asc', label: 'Price: low to high' },
   { value: 'price_desc', label: 'Price: high to low' },
   { value: 'year_desc', label: 'Year: newest' },
