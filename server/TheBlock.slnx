@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="TheBlock.Api.Tests/TheBlock.Api.Tests.csproj" />
+  <Project Path="TheBlock.Api/TheBlock.Api.csproj" />
+</Solution>

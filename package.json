@@ -1,0 +1,16 @@
+{
+  "name": "the-block",
+  "private": true,
+  "description": "Buyer side of a vehicle auction platform — React client + .NET 9 API",
+  "scripts": {
+    "dev": "concurrently -n api,web -c blue,green \"npm:dev:api\" \"npm:dev:web\"",
+    "dev:api": "dotnet run --project server/TheBlock.Api",
+    "dev:web": "npm --prefix client run dev",
+    "install:all": "npm install && npm --prefix client install && dotnet restore server",
+    "test": "dotnet test server && npm --prefix client test -- --run",
+    "build": "npm --prefix client run build && dotnet build server -c Release"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2"
+  }
+}
