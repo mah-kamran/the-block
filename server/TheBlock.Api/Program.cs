@@ -23,5 +23,6 @@ var app = builder.Build();
 
 app.MapGet("/api/health", () => Results.Ok(new { status = "ok", vehicles = repository.All.Count }));
 app.MapVehicleEndpoints();
+app.MapBidEndpoints();
 
 app.Run();
