@@ -1,146 +1,92 @@
-<p align="center">
-  <img src="docs/the_block_repo.png" alt="The Block challenge hero image" width="960" />
-</p>
+# The Block — buyer-side auction prototype
 
-# The Block
+The buyer side of a vehicle auction marketplace: browse and search 200 dealer-listed
+vehicles, inspect specs, condition and damage, and bid in live auctions.
 
-### A coding challenge from OPENLANE
+**Stack:** React 19 + Vite + TypeScript (CSS Modules) · ASP.NET Core 9 minimal API · in-memory data.
 
----
+> The original challenge brief is in [`docs/CHALLENGE.md`](docs/CHALLENGE.md); the plan I worked from is in [`docs/PLAN.md`](docs/PLAN.md).
 
-OPENLANE powers one of the world's largest digital marketplaces for used vehicles. Every day, thousands of vehicles move through our platform - inspected, listed, auctioned, and sold. Your job is to interpret what we do and bring a working prototype to life.
+## How to run
 
-We're hiring for a team that builds fast, thinks independently, and takes ownership. This challenge is part of that process.
+Prerequisites: **Node 20+** and the **.NET 9 SDK** (9.0.200 or later — the solution uses the `.slnx` format).
 
-## The Challenge
-
-Build the **buyer side of a vehicle auction platform as a web or mobile application**. We've included a dataset of 200 vehicles in [`data/vehicles.json`](data/vehicles.json), each listed by a selling dealership.
-
-A buyer should be able to browse inventory, inspect vehicle details, and place bids. That's the core experience. How you structure the product and how far you take it is up to you.
-
-## Core Requirements
-
-- Browse and search the vehicle inventory
-- Vehicle detail views with specs, condition, damage notes, selling dealership, and photos
-- A bidding experience where a buyer can place bids on vehicles
-- A usable experience that works well on the platform you choose
-- Clear instructions in your README for how to run the project locally
-
-## Assumptions You Can Make
-
-- This is a prototype, not a production launch.
-- Please spend no more than 3-4 hours of work on this. If you spend more, that's your call, but we do not expect a fully built marketplace.
-- Use any framework, language, or stack.
-- If you want stack examples that fit this challenge, React + Vite is a good web option, and SwiftUI for iOS or Compose for Android are reasonable native mobile examples. None of these are required.
-- You may use AI tools and coding assistants, and their use is encouraged. Be ready to explain how you used them, what decisions you made, and what parts of the implementation you would refine.
-- Authentication and user accounts are **not required**.
-- A frontend-only implementation is completely acceptable.
-- You do **not** need to build seller workflows, checkout, payments, or dealer admin tooling.
-- Auction timestamps in the dataset are synthetic scheduling data. If you want to show countdowns or "live" states, it's fine to normalize them relative to "now" in your prototype.
-- Make reasonable product decisions, document your assumptions, and optimize for clarity over surface area.
-
-## Minimum Bar
-
-At a minimum, we want to see:
-
-- Inventory browsing and search
-- A clear vehicle detail experience
-- A bid flow with updated visible state
-- A usable experience on desktop and mobile
-- A repo we can clone and run by following your README
-
-## Stretch Ideas
-
-These are optional. Only do them if the basics are solid.
-
-- We care more about judgment than about any specific extra feature.
-- If you go beyond the basics, focus on improvements that make the buyer experience clearer, more useful, or more trustworthy.
-- That could show up in product decisions, UX details, implementation quality, or any other thoughtful extension that fits the timebox.
-
-## What to Submit
-
-1. **Fork this repo** to your own GitHub account
-2. Complete the challenge work in your fork
-3. Include a **README** in your repo with setup instructions and notable decisions
-4. When you're finished, share the link to your repo with your contact at **OPENLANE**
-
-We've included a [submission template](SUBMISSION.md) if you want a starting point.
-
-We should be able to clone your repo and have it running locally by following your README.
-
-## Timeline
-
-You have **5 days** from when you receive this challenge to submit it.
-
-This is not a speed run. We care more about your decisions and tradeoffs than the total number of features.
-
-## What Happens Next
-
-After you submit, we'll schedule a **45-60 minute walkthrough** where you'll screen-share and walk us through what you built. More details are in [`WALKTHROUGH.md`](WALKTHROUGH.md).
-
-## How We Evaluate
-
-We're not checking boxes. Here's what we care about:
-
-| | What we're looking at |
-|---|---|
-| **Product thinking** | Did you make smart decisions about what to build and how it should work? Does the UX make sense? |
-| **Craft** | Does it look and feel intentional? The details matter - design, layout quality, polish. |
-| **Technical quality** | Is the code clean, well-structured, and easy to follow? |
-| **Judgment** | Did you scope the work well for the time budget and make sensible tradeoffs? |
-| **Workflow** | Can you walk us through how you built it and why? (assessed in the walkthrough) |
-
-## The Data
-
-The vehicle dataset is at [`data/vehicles.json`](data/vehicles.json). Each vehicle includes:
-
-- Lot number, VIN, make, model, year, and trim
-- Specs (engine, transmission, drivetrain, fuel type, odometer)
-- Condition (grade, report, damage notes, title status)
-- Auction details (starting bid, reserve price, buy now price, auction start time)
-- Current bid and bid count (some vehicles already have active bids)
-- Location (city and province)
-- Selling dealership
-- Placeholder image URLs
-
-Here's what a single vehicle looks like:
-
-```json
-{
-  "id": "3cc3b89e-68b0-479e-af39-bca6251ea0b4",
-  "vin": "TRD7L1KS0HNB5X3K3",
-  "year": 2023,
-  "make": "Ford",
-  "model": "Bronco",
-  "trim": "Big Bend",
-  "body_style": "SUV",
-  "exterior_color": "Burgundy",
-  "interior_color": "Beige",
-  "engine": "2.7L EcoBoost V6",
-  "transmission": "automatic",
-  "drivetrain": "4WD",
-  "odometer_km": 47731,
-  "fuel_type": "gasoline",
-  "condition_grade": 3.8,
-  "condition_report": "Average condition. Has some visible wear on high-touch surfaces. Engine and transmission perform within normal parameters.",
-  "damage_notes": [
-    "Scratch on liftgate",
-    "Minor rust on wheel wells",
-    "Paint peeling on roof rack"
-  ],
-  "title_status": "clean",
-  "province": "Ontario",
-  "city": "Toronto",
-  "auction_start": "2026-04-05T14:00:00",
-  "starting_bid": 14500,
-  "reserve_price": 25000,
-  "buy_now_price": null,
-  "images": ["https://placehold.co/800x600?text=2023+Ford+Bronco+Photo+1", "..."],
-  "selling_dealership": "King City Auto",
-  "lot": "A-0043",
-  "current_bid": 22800,
-  "bid_count": 16
-}
+```bash
+git clone <this repo> && cd the-block
+npm run install:all      # root tooling, client packages, dotnet restore
+npm run dev              # starts API on :5080 and web on :5173
 ```
 
-The data is synthetic but meant to feel realistic. Use it however you want. Should you need reasonable accommodation, please reach out to careers@openlane.com
+Open **http://localhost:5173**. Vite proxies `/api` to the .NET server, so there is no CORS or env setup.
+
+Other scripts:
+
+```bash
+npm test                 # xUnit (server) + Vitest (client)
+npm run build            # production client build + Release server build
+npm run dev:api          # server only
+npm run dev:web          # client only
+```
+
+Running the two halves separately works too: `dotnet run --project server/TheBlock.Api` and `npm --prefix client run dev`.
+
+## Time spent
+
+About 4 hours, in six passes: scaffold → data layer and auction clock → inventory page → bidding rules and endpoints → detail page and bid flow → polish and README. Each pass was committed separately so the history reads as the build order.
+
+## What I built
+
+**Inventory** — search (tokenised, so "2023 explorer" or a lot number works), facet filters with live counts (auction status, make, body style, province, title), six sort orders, pagination. Every piece of query state lives in the URL, so views are shareable and the back button behaves. Cards show state with a ticking countdown, current or starting bid, bid count, reserve status, a warning chip for salvage/rebuilt titles, and your own standing ("You lead" / "Outbid").
+
+**Vehicle detail** — gallery, specs, a condition section with a graded meter, the report, a title-status callout and damage notes, selling dealership, and bid history. The bid panel defaults to the minimum bid, offers quick-bid chips, validates as you type with a message that says exactly what is wrong, then confirms before placing. Buy Now has its own confirmation. While an auction is live the page polls every 10 s, so being outbid from another browser shows up without a refresh.
+
+**Bidding rules (server-side)** — minimum bid = current bid + increment ($250 under $10k, $500 under $50k, $1,000 above); bids must land on an increment; a bid at or above Buy Now is redirected to Buy Now; you cannot outbid yourself; only live auctions accept bids. Rejections return **409** with a reason code, a human message and the fresh minimum so the client corrects itself in one round trip.
+
+**Mobile** — filters become a slide-in sheet; the bid panel becomes a bottom sheet opened from a fixed price bar.
+
+## Assumptions and scope
+
+- **No accounts.** A UUID generated once into `localStorage` is sent as `X-Buyer-Id`. It is enough to show "you're the high bidder" and "you've been outbid", which is the part of identity that matters to the buyer experience.
+- **Auction times are normalised.** The dataset's `auction_start` values are a fixed week in April 2026 with no end time. At startup the server maps that range onto *[now − 4 days, now + 3 days]* and gives every auction a 72-hour window, which yields a realistic mix of upcoming, live and ended lots that keeps progressing while the server runs.
+- **Seeded bids have no history.** The dataset gives a current bid and a count but no individual bids. The UI shows those as one summary row ("16 earlier bids") rather than fabricating a timeline. Bids placed through the API are recorded individually on top.
+- **In-memory only.** State resets on server restart. With 200 records and no persistence requirement, a database would add setup friction for reviewers without changing any product decision.
+- **Placeholder images** come from `placehold.co`, so the UI needs a network connection to show them.
+- Not built, deliberately: seller tooling, checkout/payments, proxy (max) bidding, watchlists, push notifications, i18n beyond `en-CA` formatting.
+
+## Notable decisions
+
+**Why a backend at all when frontend-only was allowed.** Bid validation and concurrency are the only real domain logic in this product. Doing them in the browser would be theatre — nothing stops a second tab from disagreeing. The server is the single authority; the client mirrors the rules (`client/src/lib/bidding.ts`) purely for instant feedback, and the tests for both sides pin the same increment table.
+
+**Per-vehicle lock.** `BidStore.Mutate` runs read → validate → write under a lock keyed by vehicle id, so two buyers bidding at the same instant are serialised and the loser gets a 409 with the new minimum instead of silently clobbering the winner. There is a 50-way concurrency test for this.
+
+**`TimeProvider` in the clock.** `AuctionClock` takes an injected `TimeProvider`, so the state-boundary tests freeze time instead of sleeping.
+
+**URL as state.** Filters, search, sort and page are all in the query string. It made the "clear all" and back-button behaviour fall out for free and is what a buyer would expect when sharing a search with a colleague.
+
+**Reserve status as a first-class signal.** 140 of 200 vehicles have a reserve and 64 have already met it. Whether the reserve is met is the difference between "this will sell" and "this might not", so it is on every card and in the panel, not buried in a tooltip.
+
+**Title status is a warning, not a spec.** 30 vehicles are salvage or rebuilt. That changes what a buyer should pay, so it gets a red chip on the card and a plain-language callout on the detail page.
+
+**CSS Modules over a utility framework.** Scoped, readable per component, one `tokens.css` for colour, type and spacing. No build-time dependency on a framework's class vocabulary for a reviewer to learn.
+
+## Testing
+
+- **Server (xUnit, 30 tests):** `BiddingRules` — every increment band, minimum-bid derivation, and each rejection reason including the Buy Now ceiling and self-outbid; `AuctionClock` — window mapping and Upcoming→Live→Ended boundaries with a fake clock; `BidStore` — seeded-state layering and a 50-thread race that asserts bids strictly increase.
+- **Client (Vitest + Testing Library, 12 tests):** formatting helpers, the client-side rule mirror, and `BidPanel` behaviour — defaulting to the minimum, blocking review with an explanatory message, confirm-then-place, and the non-live and outbid states.
+- **Manual:** the full bid / outbid / Buy Now / sold flow exercised over HTTP against every 409 path, and a viewport pass for the mobile layouts.
+
+Run everything with `npm test`.
+
+## What I'd do with more time
+
+1. **Real-time push** (SSE or SignalR) instead of 10-second polling on the detail page, and live badges on inventory cards.
+2. **"My bids" page** from the buyer header — the API already knows every vehicle a buyer has touched.
+3. **Proxy bidding** (set a maximum, let the server bid on your behalf) — the ledger design supports it, the UI does not yet.
+4. **Persistence** — swap the in-memory store for SQLite/Postgres behind the same `BidStore` interface.
+5. **Auction-end handling** — soft-close extension when a bid lands in the final minutes, and a proper "you won / reserve not met" outcome flow.
+6. **Accessibility audit** with a screen reader; the structure is there (labels, live regions, dialogs) but it has not been tested with real assistive tech.
+7. **E2E test** (Playwright) for the bid flow across two browser contexts.
+
+## How I used AI
+
+I used Claude Code as a pair programmer. I chose the stack (.NET 9 API, React with CSS Modules) and the working rhythm: plan first, build in reviewable steps, commit only after I had looked at the result. Claude drafted the plan in `docs/PLAN.md` — the normalised time window, the increment bands, treating seeded bids as a summary row, the reserve and title-status emphasis — and I approved or adjusted it before any code was written. Claude then wrote most of the code and tests to that plan; I reviewed each step in the running app and in the diff before it was committed. Tests caught at least one thing review did not: a rule-ordering bug where a bid above Buy Now reported an increment error instead of pointing at Buy Now. Everything in the repo is something I can walk through line by line.

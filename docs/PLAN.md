@@ -52,7 +52,7 @@ client-side would be theatre. The server is the single authority on
 
 ### Auction clock (time normalization)
 Dataset range [2026-03-31 09:00, 2026-04-06 20:00] is linearly mapped onto
-[now − 2 d, now + 5 d] at startup. Each auction runs **72 h** from its shifted start.
+[now − 4 d, now + 3 d] at startup. Each auction runs **72 h** from its shifted start, giving roughly 45% live, 45% upcoming, 10% ended.
 
 ```
 Upcoming : now <  start
