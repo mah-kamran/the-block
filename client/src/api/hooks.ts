@@ -17,10 +17,14 @@ export function useVehicles(query: VehicleQuery) {
   })
 }
 
-export function useVehicle(id: string, opts?: { refetchInterval?: number | false }) {
+/** Detail view. While the auction is live we poll so outbids surface without a refresh. */
+export function useVehicle(id: string, opts?: { livePollMs?: number }) {
   return useQuery({
     queryKey: vehicleKeys.detail(id),
     queryFn: () => api.getVehicle(id),
-    refetchInterval: opts?.refetchInterval ?? false,
+    refetchInterval: (query) => {
+      const a = query.state.data?.auction
+      return opts?.livePollMs && a?.state === 'live' && !a.sold ? opts.livePollMs : false
+    },
   })
 }

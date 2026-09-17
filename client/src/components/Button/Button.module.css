@@ -1,0 +1,38 @@
+.btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  font-weight: 600;
+  white-space: nowrap;
+  transition: background 120ms ease, border-color 120ms ease;
+}
+.md { height: 40px; padding: 0 var(--space-4); font-size: var(--text-sm); }
+.lg { height: 48px; padding: 0 var(--space-5); font-size: var(--text-md); }
+.block { width: 100%; }
+
+.primary { background: var(--color-accent); color: var(--color-on-accent); }
+.primary:hover:not(:disabled) { background: var(--color-accent-hover); }
+
+.secondary { background: var(--color-surface); border-color: var(--color-border-strong); color: var(--color-text); }
+.secondary:hover:not(:disabled) { background: var(--color-surface-muted); }
+
+.ghost { background: transparent; color: var(--color-accent); }
+.ghost:hover:not(:disabled) { background: var(--color-accent-soft); }
+
+.btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.spinner {
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: spin 700ms linear infinite;
+}
+.hiddenLabel { visibility: hidden; }
+@keyframes spin { to { transform: rotate(360deg); } }
