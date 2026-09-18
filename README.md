@@ -19,6 +19,16 @@ npm run dev              # starts API on :5080 and web on :5173
 
 Open **http://localhost:5173**. Vite proxies `/api` to the .NET server, so there is no CORS or env setup.
 
+Browsing is open to everyone. To bid, sign in with one of the seeded demo accounts (password `demo123` for all):
+
+| Username | Name |
+|---|---|
+| `alice` | Alice Chen |
+| `bob` | Bob Tremblay |
+| `carol` | Carol Singh |
+
+To see the outbid flow in one browser: sign in as Alice, bid, sign out, sign in as Bob, outbid her, then sign back in as Alice.
+
 Other scripts:
 
 ```bash
@@ -30,9 +40,6 @@ npm run dev:web          # client only
 
 Running the two halves separately works too: `dotnet run --project server/TheBlock.Api` and `npm --prefix client run dev`.
 
-## Time spent
-
-About 4 hours, in six passes: scaffold → data layer and auction clock → inventory page → bidding rules and endpoints → detail page and bid flow → polish and README. Each pass was committed separately so the history reads as the build order.
 
 ## What I built
 
@@ -42,11 +49,13 @@ About 4 hours, in six passes: scaffold → data layer and auction clock → inve
 
 **Bidding rules (server-side)** — minimum bid = current bid + increment ($250 under $10k, $500 under $50k, $1,000 above); bids must land on an increment; a bid at or above Buy Now is redirected to Buy Now; you cannot outbid yourself; only live auctions accept bids. Rejections return **409** with a reason code, a human message and the fresh minimum so the client corrects itself in one round trip.
 
+**Accounts and My Bids** — cookie-based sessions with three seeded demo users. Bids are recorded against the signed-in user, so they follow you across sign-out, sign-in and browsers. A **My Bids** page groups everything you have bid on into Outbid, Leading, Won and Closed, with the amount needed to retake the lead.
+
 **Mobile** — filters become a slide-in sheet; the bid panel becomes a bottom sheet opened from a fixed price bar.
 
 ## Assumptions and scope
 
-- **No accounts.** A UUID generated once into `localStorage` is sent as `X-Buyer-Id`. It is enough to show "you're the high bidder" and "you've been outbid", which is the part of identity that matters to the buyer experience.
+- **Seeded accounts, no registration.** Three demo users live in `server/TheBlock.Api/Auth/seed-users.json`; passwords are hashed at startup with ASP.NET's `PasswordHasher`. Sessions are an HttpOnly, SameSite cookie issued by ASP.NET cookie authentication. Because the client is same-origin through the Vite proxy, no tokens or CORS are involved. The brief said auth was optional; it was added after the core was done because "my bids follow me" is the part of identity a buyer actually feels.
 - **Auction times are normalised.** The dataset's `auction_start` values are a fixed week in April 2026 with no end time. At startup the server maps that range onto *[now − 4 days, now + 3 days]* and gives every auction a 72-hour window, which yields a realistic mix of upcoming, live and ended lots that keeps progressing while the server runs.
 - **Seeded bids have no history.** The dataset gives a current bid and a count but no individual bids. The UI shows those as one summary row ("16 earlier bids") rather than fabricating a timeline. Bids placed through the API are recorded individually on top.
 - **In-memory only.** State resets on server restart. With 200 records and no persistence requirement, a database would add setup friction for reviewers without changing any product decision.
@@ -54,6 +63,8 @@ About 4 hours, in six passes: scaffold → data layer and auction clock → inve
 - Not built, deliberately: seller tooling, checkout/payments, proxy (max) bidding, watchlists, push notifications, i18n beyond `en-CA` formatting.
 
 ## Notable decisions
+
+**Identity is just where the buyer id comes from.** The ledger always keyed bids by an opaque buyer id. The first version generated it in the browser; the auth version reads it from the session cookie's claims. `BiddingRules`, `AuctionLedger`, `BidStore` and the status computation did not change when auth was added, which is the test of whether the seam was in the right place.
 
 **Why a backend at all when frontend-only was allowed.** Bid validation and concurrency are the only real domain logic in this product. Doing them in the browser would be theatre — nothing stops a second tab from disagreeing. The server is the single authority; the client mirrors the rules (`client/src/lib/bidding.ts`) purely for instant feedback, and the tests for both sides pin the same increment table.
 
@@ -71,8 +82,8 @@ About 4 hours, in six passes: scaffold → data layer and auction clock → inve
 
 ## Testing
 
-- **Server (xUnit, 34 tests):** `BiddingRules` — every increment band, minimum-bid derivation, and each rejection reason including the Buy Now ceiling and self-outbid; `AuctionClock` — window mapping and Upcoming→Live→Ended boundaries with a fake clock; `BidStore` — seeded-state layering and a 50-thread race that asserts bids strictly increase; `VehicleQuery` — price filtering semantics, facet bounds, and top-N ranking.
-- **Client (Vitest + Testing Library, 12 tests):** formatting helpers, the client-side rule mirror, and `BidPanel` behaviour — defaulting to the minimum, blocking review with an explanatory message, confirm-then-place, and the non-live and outbid states.
+- **Server (xUnit, 37 tests):** `BiddingRules` — every increment band, minimum-bid derivation, and each rejection reason including the Buy Now ceiling and self-outbid; `AuctionClock` — window mapping and Upcoming→Live→Ended boundaries with a fake clock; `BidStore` — seeded-state layering and a 50-thread race that asserts bids strictly increase; `VehicleQuery` — price filtering semantics, facet bounds, and top-N ranking; `AuthFlow` — end-to-end over HTTP with `WebApplicationFactory`: anonymous can browse but not bid, wrong password is rejected, and bids follow the user across sign-out and a different sign-in on the same client.
+- **Client (Vitest + Testing Library, 13 tests):** formatting helpers, the client-side rule mirror, and `BidPanel` behaviour — defaulting to the minimum, blocking review with an explanatory message, confirm-then-place, the non-live and outbid states, and the sign-in prompt for anonymous visitors.
 - **Manual:** the full bid / outbid / Buy Now / sold flow exercised over HTTP against every 409 path, and a viewport pass for the mobile layouts.
 
 Run everything with `npm test`.
@@ -80,7 +91,7 @@ Run everything with `npm test`.
 ## What I'd do with more time
 
 1. **Real-time push** (SSE or SignalR) instead of 10-second polling on the detail page, and live badges on inventory cards.
-2. **"My bids" page** from the buyer header — the API already knows every vehicle a buyer has touched.
+2. **Registration and password reset** — accounts are seeded only; the store and hashing are in place for a register endpoint.
 3. **Proxy bidding** (set a maximum, let the server bid on your behalf) — the ledger design supports it, the UI does not yet.
 4. **Persistence** — swap the in-memory store for SQLite/Postgres behind the same `BidStore` interface.
 5. **Auction-end handling** — soft-close extension when a bid lands in the final minutes, and a proper "you won / reserve not met" outcome flow.

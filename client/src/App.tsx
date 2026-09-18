@@ -1,6 +1,8 @@
 import { Route, Routes } from 'react-router-dom'
 import { Layout } from './components/Layout/Layout'
 import { InventoryPage } from './pages/InventoryPage'
+import { LoginPage } from './pages/LoginPage'
+import { MyBidsPage } from './pages/MyBidsPage'
 import { VehicleDetailPage } from './pages/VehicleDetailPage'
 
 export default function App() {
@@ -9,6 +11,8 @@ export default function App() {
       <Route element={<Layout />}>
         <Route index element={<InventoryPage />} />
         <Route path="vehicles/:id" element={<VehicleDetailPage />} />
+        <Route path="login" element={<LoginPage />} />
+        <Route path="my-bids" element={<MyBidsPage />} />
       </Route>
     </Routes>
   )

@@ -75,3 +75,17 @@
 .confirmTitle { font-size: var(--text-lg); font-weight: 700; letter-spacing: -0.01em; }
 .confirmText { font-size: var(--text-sm); color: var(--color-text-muted); }
 .confirmActions { display: grid; grid-template-columns: 1fr 1.4fr; gap: var(--space-2); }
+
+.signIn { display: flex; flex-direction: column; gap: var(--space-3); }
+.signInText { font-size: var(--text-sm); color: var(--color-text-muted); }
+.signInBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 48px;
+  border-radius: var(--radius-sm);
+  background: var(--color-accent);
+  color: var(--color-on-accent);
+  font-weight: 600;
+}
+.signInBtn:hover { background: var(--color-accent-hover); color: var(--color-on-accent); }

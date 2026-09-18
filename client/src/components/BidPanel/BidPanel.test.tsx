@@ -1,5 +1,6 @@
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import { MemoryRouter } from 'react-router-dom'
 import { describe, expect, it, vi } from 'vitest'
 import type { VehicleDetail } from '../../api/types'
 import { BidPanel } from './BidPanel'
@@ -16,18 +17,23 @@ const vehicle: VehicleDetail = {
   },
 }
 
-function setup(overrides: Partial<VehicleDetail['auction']> = {}) {
+const alice = { id: 'u-alice', username: 'alice', displayName: 'Alice Chen' }
+
+function setup(overrides: Partial<VehicleDetail['auction']> = {}, user: typeof alice | null = alice) {
   const onPlaceBid = vi.fn().mockResolvedValue(undefined)
   const onBuyNow = vi.fn().mockResolvedValue(undefined)
   render(
-    <BidPanel
-      vehicle={{ ...vehicle, auction: { ...vehicle.auction, ...overrides } }}
-      onPlaceBid={onPlaceBid}
-      onBuyNow={onBuyNow}
-      placing={false}
-      buying={false}
-      error={null}
-    />,
+    <MemoryRouter>
+      <BidPanel
+        vehicle={{ ...vehicle, auction: { ...vehicle.auction, ...overrides } }}
+        user={user}
+        onPlaceBid={onPlaceBid}
+        onBuyNow={onBuyNow}
+        placing={false}
+        buying={false}
+        error={null}
+      />
+    </MemoryRouter>,
   )
   return { onPlaceBid, onBuyNow }
 }
@@ -62,5 +68,11 @@ describe('BidPanel', () => {
   it('shows the outbid message with the amount needed to retake the lead', () => {
     setup({ yourStatus: 'outbid' })
     expect(screen.getByText(/outbid/i)).toHaveTextContent('$23,300')
+  })
+
+  it('asks anonymous visitors to sign in instead of showing the form', () => {
+    setup({}, null)
+    expect(screen.queryByLabelText('Your bid')).not.toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Sign in to bid' })).toHaveAttribute('href', '/login')
   })
 })

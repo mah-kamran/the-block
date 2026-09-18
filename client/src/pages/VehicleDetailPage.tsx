@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
+import { useMe } from '../api/auth'
 import { useVehicle } from '../api/hooks'
 import { useBuyNow, usePlaceBid } from '../api/mutations'
 import type { VehicleDetail } from '../api/types'
@@ -35,6 +36,7 @@ export function VehicleDetailPage() {
 }
 
 function Detail({ vehicle: v }: { vehicle: VehicleDetail }) {
+  const { data: me } = useMe()
   const placeBid = usePlaceBid(v.id)
   const buyNow = useBuyNow(v.id)
   const [sheetOpen, setSheetOpen] = useState(false)
@@ -55,6 +57,7 @@ function Detail({ vehicle: v }: { vehicle: VehicleDetail }) {
   const panel = (
     <BidPanel
       vehicle={v}
+      user={me ?? null}
       onPlaceBid={(amount) => placeBid.mutateAsync(amount).catch(() => undefined)}
       onBuyNow={() => buyNow.mutateAsync().catch(() => undefined)}
       placing={placeBid.isPending}

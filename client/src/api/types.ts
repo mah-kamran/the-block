@@ -124,3 +124,15 @@ export interface BidRejected {
   minimumBid: number
   currentBid: number | null
 }
+
+export interface User {
+  id: string
+  username: string
+  displayName: string
+}
+
+export interface MyBid {
+  vehicle: VehicleSummary
+  yourHighestBid: number
+  lastBidAt: string
+}

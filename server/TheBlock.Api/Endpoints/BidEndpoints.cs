@@ -12,8 +12,7 @@ public static class BidEndpoints
 
         group.MapPost("/bids", (string id, PlaceBidRequest body, HttpRequest request, VehicleRepository vehicles, BidStore store, AuctionClock clock) =>
         {
-            var buyerId = VehicleEndpoints.BuyerId(request);
-            if (buyerId is null) return Results.BadRequest(new { message = $"{VehicleEndpoints.BuyerHeader} header is required." });
+            var buyerId = VehicleEndpoints.BuyerId(request)!; // guaranteed by RequireAuthorization
             if (body.Amount <= 0 || body.Amount != decimal.Truncate(body.Amount))
                 return Results.BadRequest(new { message = "Amount must be a positive whole-dollar value." });
 
@@ -33,12 +32,11 @@ public static class BidEndpoints
                 ledger.Record(new Bid(buyerId, body.Amount, clock.Now));
                 return Results.Created($"/api/vehicles/{vehicle.Id}", VehicleMapper.ToDetail(ledger, clock, buyerId));
             });
-        });
+        }).RequireAuthorization();
 
         group.MapPost("/buy-now", (string id, HttpRequest request, VehicleRepository vehicles, BidStore store, AuctionClock clock) =>
         {
-            var buyerId = VehicleEndpoints.BuyerId(request);
-            if (buyerId is null) return Results.BadRequest(new { message = $"{VehicleEndpoints.BuyerHeader} header is required." });
+            var buyerId = VehicleEndpoints.BuyerId(request)!;
 
             var vehicle = vehicles.Find(id);
             if (vehicle is null) return Results.NotFound();
@@ -52,7 +50,7 @@ public static class BidEndpoints
                 ledger.MarkSold(buyerId, vehicle.BuyNowPrice.Value, clock.Now);
                 return Results.Ok(VehicleMapper.ToDetail(ledger, clock, buyerId));
             });
-        });
+        }).RequireAuthorization();
 
         group.MapGet("/bids", (string id, HttpRequest request, VehicleRepository vehicles, BidStore store) =>
         {

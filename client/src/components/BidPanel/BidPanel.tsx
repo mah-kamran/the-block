@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import type { VehicleDetail } from '../../api/types'
+import { Link, useLocation } from 'react-router-dom'
+import type { User, VehicleDetail } from '../../api/types'
 import { BidRejectedError } from '../../api/client'
 import { formatDateTime, formatDuration, formatMoney } from '../../lib/format'
 import { quickStep, validateLocally } from '../../lib/bidding'
@@ -10,6 +11,8 @@ import styles from './BidPanel.module.css'
 
 interface Props {
   vehicle: VehicleDetail
+  /** Signed-in buyer; null shows a sign-in prompt in place of the form. */
+  user: User | null
   onPlaceBid: (amount: number) => Promise<unknown>
   onBuyNow: () => Promise<unknown>
   placing: boolean
@@ -19,9 +22,10 @@ interface Props {
 
 type Step = { kind: 'edit' } | { kind: 'confirm'; amount: number } | { kind: 'confirmBuyNow' }
 
-export function BidPanel({ vehicle: v, onPlaceBid, onBuyNow, placing, buying, error }: Props) {
+export function BidPanel({ vehicle: v, user, onPlaceBid, onBuyNow, placing, buying, error }: Props) {
   const a = v.auction
   const now = useNow()
+  const location = useLocation()
   const [step, setStep] = useState<Step>({ kind: 'edit' })
   const [draft, setDraft] = useState<string>('')
 
@@ -89,7 +93,14 @@ export function BidPanel({ vehicle: v, onPlaceBid, onBuyNow, placing, buying, er
         </div>
       )}
 
-      {canBid && step.kind === 'edit' && (
+      {canBid && !user && (
+        <div className={styles.signIn}>
+          <p className={styles.signInText}>Sign in to place a bid. Minimum is {formatMoney(a.minimumBid)}.</p>
+          <Link to="/login" state={{ from: location.pathname }} className={styles.signInBtn}>Sign in to bid</Link>
+        </div>
+      )}
+
+      {canBid && user && step.kind === 'edit' && (
         <form
           className={styles.form}
           onSubmit={(e) => {
@@ -144,7 +155,7 @@ export function BidPanel({ vehicle: v, onPlaceBid, onBuyNow, placing, buying, er
         </form>
       )}
 
-      {canBid && step.kind === 'confirm' && (
+      {canBid && user && step.kind === 'confirm' && (
         <div className={styles.confirm} role="dialog" aria-labelledby="confirm-title">
           <h3 id="confirm-title" className={styles.confirmTitle}>Place a bid of {formatMoney(step.amount)}?</h3>
           <p className={styles.confirmText}>
@@ -161,7 +172,7 @@ export function BidPanel({ vehicle: v, onPlaceBid, onBuyNow, placing, buying, er
         </div>
       )}
 
-      {canBid && step.kind === 'confirmBuyNow' && a.buyNowPrice !== null && (
+      {canBid && user && step.kind === 'confirmBuyNow' && a.buyNowPrice !== null && (
         <div className={styles.confirm} role="dialog" aria-labelledby="buy-title">
           <h3 id="buy-title" className={styles.confirmTitle}>Buy now for {formatMoney(a.buyNowPrice)}?</h3>
           <p className={styles.confirmText}>This ends the auction immediately and you take the vehicle at this price.</p>

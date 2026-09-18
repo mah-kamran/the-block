@@ -6,4 +6,8 @@
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
 
+  <ItemGroup>
+    <None Update="Auth\seed-users.json" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
 </Project>

@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using TheBlock.Api.Auth;
 using TheBlock.Api.Contracts;
 using TheBlock.Api.Data;
 using TheBlock.Api.Domain;
@@ -7,8 +8,6 @@ namespace TheBlock.Api.Endpoints;
 
 public static class VehicleEndpoints
 {
-    public const string BuyerHeader = "X-Buyer-Id";
-
     public static IEndpointRouteBuilder MapVehicleEndpoints(this IEndpointRouteBuilder app)
     {
         var group = app.MapGroup("/api/vehicles");
@@ -45,9 +44,6 @@ public static class VehicleEndpoints
         return app;
     }
 
-    public static string? BuyerId(HttpRequest request)
-    {
-        var value = request.Headers[BuyerHeader].FirstOrDefault();
-        return string.IsNullOrWhiteSpace(value) ? null : value.Trim();
-    }
+    /// <summary>Signed-in user's id, or null for anonymous browsing.</summary>
+    public static string? BuyerId(HttpRequest request) => AuthEndpoints.CurrentUserId(request.HttpContext.User);
 }

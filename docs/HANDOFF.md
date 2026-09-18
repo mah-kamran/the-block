@@ -10,7 +10,7 @@ Repo lives at `~/dev/the-block`, forked from `https://github.com/kar-dmp/the-blo
 The brief is `docs/CHALLENGE.md`; the plan we built from is `docs/PLAN.md`; the
 submission README is the root `README.md`.
 
-**Status: feature-complete for submission. Not yet pushed to the fork.**
+**Status: feature-complete incl. cookie auth + My Bids. Not yet pushed to the fork.**
 
 ## How we work (owner's preferences)
 
@@ -19,7 +19,7 @@ submission README is the root `README.md`.
 - Commit per step with a conventional prefix (`feat(api):`, `feat(web):`, `docs:`, `chore:`)
   and `Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>`.
 - Decided up front: **.NET 9** (not 10), **CSS Modules** (not Tailwind), React + Vite client,
-  anonymous `X-Buyer-Id` identity, plan kept in `docs/`.
+  cookie sessions with seeded demo users (alice/bob/carol, `demo123`), plan kept in `docs/`.
 - Mahnaz checks the UI herself; the AI session had no browser access (cli-chrome bridge not
   paired), so visual verification is always hers.
 
@@ -28,7 +28,7 @@ submission README is the root `README.md`.
 ```bash
 npm run install:all   # once
 npm run dev           # API :5080 + web :5173 (Vite proxies /api)
-npm test              # 34 xUnit + 12 Vitest, all passing as of 1f6fdeb
+npm test              # 37 xUnit + 13 Vitest, all passing
 ```
 Servers were started with `nohup npm run dev > /tmp/dev.log &`; kill with
 `pkill -f TheBlock.Api; pkill -f vite; pkill -f concurrently`. `dotnet run` does **not**
@@ -46,13 +46,16 @@ server/TheBlock.Api
   Data/     VehicleRepository (loads ../../data/vehicles.json, snake_case), BidStore (ledger per
             vehicle + per-vehicle lock, Mutate<T>), VehicleQuery (search/filter/sort/page/facets)
   Contracts/ DTOs (camelCase out, enums snake_case), VehicleMapper, BidRejected (409 body)
-  Endpoints/ VehicleEndpoints (GET list, GET detail), BidEndpoints (POST bids, POST buy-now, GET bids)
-server/TheBlock.Api.Tests   xUnit: AuctionClock, BiddingRules, BidStore (50-way race), VehicleQuery
+  Auth/     User, UserStore (seed-users.json, PasswordHasher), AuthEndpoints (login/logout/me, cookie scheme)
+  Endpoints/ VehicleEndpoints (GET list, GET detail), BidEndpoints (POST bids, POST buy-now — RequireAuthorization),
+            MyBidsEndpoints (GET /api/me/bids)
+server/TheBlock.Api.Tests   xUnit: AuctionClock, BiddingRules, BidStore (50-way race), VehicleQuery, AuthFlow (WebApplicationFactory)
 client/src
-  api/      types.ts (mirrors contracts), client.ts (fetch + X-Buyer-Id, BidRejectedError),
-            hooks.ts (useVehicles, useVehicle w/ live polling), mutations.ts (placeBid, buyNow)
-  lib/      format.ts (en-CA), bidding.ts (client mirror of increment rules), buyer.ts, useNow.ts
-  pages/    InventoryPage (all state in URL), VehicleDetailPage (+ mobile bottom sheet)
+  api/      types.ts (mirrors contracts), client.ts (fetch, same-origin cookie, BidRejectedError),
+            hooks.ts (useVehicles, useVehicle w/ live polling), mutations.ts (placeBid, buyNow),
+            auth.ts (useMe, useLogin, useLogout, useMyBids — identity change clears the query cache)
+  lib/      format.ts (en-CA), bidding.ts (client mirror of increment rules), useNow.ts
+  pages/    InventoryPage (all state in URL), VehicleDetailPage (+ mobile bottom sheet), LoginPage, MyBidsPage
   components/ VehicleCard, StateBadge, Filters, PriceRange, SearchBar, SortSelect, Pagination,
             EmptyState, Layout, Gallery, SpecList, ConditionCard, BidHistory, BidPanel, Button
 ```
@@ -71,10 +74,16 @@ client/src
 | `top` forces `most_bids` sort only when sort is default | Explicit sort re-orders the same five. |
 | Search haystack includes city + dealership | "ford" matches 26 not 16 because of dealership names; accepted, make filter is the precise tool. |
 | Search example "2023 bronco" from the brief returns 0 | Not a bug: dataset has no 2023 Bronco. |
+| Cookie auth, not JWT; seeded users, no register | Same-origin via proxy → HttpOnly cookie is simplest and safest; seeded keeps README to "sign in as alice". 401/403 returned instead of redirects. |
+| Bidding requires sign-in, browsing does not | Buyer can evaluate before committing to an account. Panel shows "Sign in to bid" with the minimum. |
+| Login/logout calls `queryClient.clear()` | Every "you" indicator depends on identity; a stale cache would show the previous user's standing. |
 
 ## Commit history (all on `main`)
 
 ```
+(next)  feat: cookie auth with seeded users, My Bids page
+cd8c44b docs: implementation overview deck (7 slides)
+be29ffa docs: handoff notes
 1f6fdeb feat: price range filter, top-5 most-bid toggle, most-bids sort
 833ab72 docs: submission README, move challenge brief to docs/
 1906130 feat(web): vehicle detail page and bid flow
@@ -92,7 +101,9 @@ ed66c66 feat(api): vehicle catalogue, auction clock, search/filter/sort endpoint
 3. **Mobile visual pass** — bottom sheet (detail) and filter drawer (inventory) only checked by
    resizing on desktop.
 4. Stretch ideas not built, listed in README "What I'd do with more time": SSE/SignalR push,
-   My Bids page, proxy bidding, persistence, soft-close, a11y audit, Playwright e2e.
+   registration, proxy bidding, persistence, soft-close, a11y audit, Playwright e2e.
+5. Deck `docs/the-block-overview.pptx` is built by `/tmp/tb-deck/build.js` (pptxgenjs) — that script is
+   NOT in the repo; if it's gone, regenerate from the slide text or edit the pptx directly.
 
 ## Gotchas learned
 
@@ -102,3 +113,7 @@ ed66c66 feat(api): vehicle catalogue, auction clock, search/filter/sort endpoint
 - `FakeTimeProvider.SetUtcNow` cannot go backwards; pick test vehicles that map into the future.
 - xUnit `InlineData` with `null` needs `int?` params, not `double?`.
 - Minimal API binding failure (e.g. `page=abc`) returns 400 but logs a dev-page exception; harmless.
+- `dotnet add package X --version 9.0.*` in zsh: quote the version or the glob breaks.
+- `WebApplicationFactory<Program>` needs `public partial class Program;` at the end of Program.cs and
+  `UseSetting(...)` (not `UseConfiguration`) for test config.
+- Seed users JSON is copied to the build output (`CopyToOutputDirectory`); `UsersPath` config overrides it.
