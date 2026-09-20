@@ -28,7 +28,7 @@ submission README is the root `README.md`.
 ```bash
 npm run install:all   # once
 npm run dev           # API :5080 + web :5173 (Vite proxies /api)
-npm test              # 37 xUnit + 13 Vitest, all passing
+npm test              # 37 xUnit + 31 Vitest, all passing
 ```
 Servers were started with `nohup npm run dev > /tmp/dev.log &`; kill with
 `pkill -f TheBlock.Api; pkill -f vite; pkill -f concurrently`. `dotnet run` does **not**
